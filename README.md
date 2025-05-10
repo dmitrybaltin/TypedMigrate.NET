@@ -99,7 +99,7 @@ This project takes the statically typed approach to its logical conclusion:
 ### Example
 A usage example is located in the **Example** directory. The entry point is the **UnityExample** component, where an instance of outdated game data is generated and saved to disk, then loaded and successfully migrated to the latest version.
 ### How It Works
-To load and migrate data, you should not call the deserializer directly. Instead, use a Parser function that performs deserialization and applies necessary migrations automatically: It calls deserialization to convert byte[] to objects and calls Migration functions written by users (**MigrateV1V2**(), **MigrateV2V3**()) to migrate one GameState to another.
+To load and migrate data, you should not call the deserializer directly. Instead, use a Parser Deserialize() function that performs deserialization and applies necessary migrations automatically: it calls deserialization to convert byte[] to objects and calls Migration functions written by users (**ToV2**(), **ToV3**()) to migrate one GameState to another.
 
 The project includes two parser implementations:
 - **SimpleParser**: a straightforward, easy-to-read parser without iterators.
@@ -110,7 +110,7 @@ This example also demonstrates the ability to switch serialization formats (e.g.
 ### When You Change the Data Schema
 If the data schema changes, follow these three steps:
 1. Create a new data class based on GameStateBase (in the example they are **GameStateV1**, **GameStateV2**, **GameStateV3**, **GameState**).
-2. Implement a migration function from the previous version, e.g., **MigrateV1V2**(), **MigrateV2V3**(), etc.
+2. Implement a migration function from the previous version, e.g., **ToV2**(), **ToV3**(), etc.
 3. Update your parser:
    - For **FluentParser**: add a new line to the chain.
    - For **SimpleParser**: add a new parsing method (3 lines of code).
@@ -137,21 +137,19 @@ Migration functions are implemented as functions and not as classes because they
 Here's an example of a migration function that migrates game state from version 2 (**GameStateV2**) to version 3 (**GameStateV3**):
 
 ```csharp
-public static GameStateV3 MigrateV2V3(this GameStateV2 fromState)
-{
-    return new GameStateV3
+public static GameStateV3 ToV3(this GameStateV2 fromState) =>
+    new()
     {
-        LastReachedLevel = fromState.LastReachedLevel,
-        PlayerProfile = new PlayerProfile
+        lastReachedLevel = fromState.lastReachedLevel,
+        playerProfile = new PlayerProfile
         {
-            PlayerName = fromState.PlayerName,
-            PlayerLevel = fromState.PlayerLevel,
-            Coins = fromState.Coins,
-            AvaliableSkins = fromState.AvaliableSkins,
-            EquippedSkinId = fromState.AvaliableSkins[0] // Default skin
+            playerName = fromState.playerName,
+            playerLevel = fromState.playerLevel,
+            coins = fromState.coins,
+            availableSkins = fromState.availableSkins,
+            equippedSkinId = fromState.availableSkins[0]
         }
     };
-}
 ```
 
 ### Parser
